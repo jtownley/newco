@@ -1,12 +1,11 @@
 package domain
 
-trait Item {
-    def name: String
-    def price: Double
+object Types {
+  type Cart = Set[_ <: Item]
 }
 
-case class Cart(itemSet: Set[Item]) 
+trait Item
 
-case class SingleItem(override val name: String, override val price: Double) extends Item
+case class SingleItem(val name: String, val price: Double) extends Item
 
-case class Bundle(override val name: String, override val price: Double, items:Set[SingleItem]) extends Item
+case class Bundle(val name: String, val price: Double, items:Set[SingleItem]) extends Item
