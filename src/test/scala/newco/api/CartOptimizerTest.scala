@@ -1,5 +1,6 @@
 package newco.api
-import newco.domain.Item
+import com.sun.xml.internal.bind.v2.runtime.unmarshaller.XsiNilLoader.Single
+import newco.domain.{Bundle, Item, SingleItem}
 import newco.domain.Types.Cart
 import newco.helpers.TestHelpers
 import org.scalatest.FreeSpec
@@ -119,36 +120,37 @@ class CartOptimizerTest extends FreeSpec with TestHelpers{
 
             assertCartEqual(expectedCart, actualCart)
           }
-//          "multiple items that could be part of a multiple bundles some of which are better deals if examined on there own" in {
-//            val item1 = getSingleItems(price = 5.00)
-//            val item2 = getSingleItems(price = 12.00)
-//            val item3 = getSingleItems(price = 10.00)
-//            val bundle1 = getBundle(item1 ++ item3, price = Some(13.50d))
-//            val bundle2 = getBundle(item2 ++ item3 ++ item3, price = Some(30.00d))
-//            val items = item1 ++ item1 ++ item2 ++ item3 ++ item3
-//            val cartOptimizer = new CartOptimizer(bundle1 ++ bundle2)
-//            val initialCart : Cart = items
-//            val expectedCart : Cart = item2 ++ bundle1 ++ bundle1
-//
-//            val actualCart = cartOptimizer.optimize(initialCart)
-//
-//            assertCartEqual(expectedCart, actualCart)
-//          }
+          "multiple items that could be part of a multiple bundles some of which are better deals if examined on there own" in {
+            val item1 = getSingleItems(price = 5.00)
+            val item2 = getSingleItems(price = 12.00)
+            val item3 = getSingleItems(price = 10.00)
+            val bundle1 = getBundle(item1 ++ item3, price = Some(13.50d))
+            val bundle2 = getBundle(item2 ++ item3 ++ item3, price = Some(30.00d))
+            val items = item1 ++ item1 ++ item2 ++ item3 ++ item3
+            val cartOptimizer = new CartOptimizer(bundle1 ++ bundle2)
+            val initialCart : Cart = items
+            val expectedCart : Cart = item2 ++ bundle1 ++ bundle1
+
+            val actualCart = cartOptimizer.optimize(initialCart)
+
+            assertCartEqual(expectedCart, actualCart)
+          }
         }
       }
     }
   }
 
+  def sortCart(cart: Cart): Cart = cart.sortWith((item1, item2) => (item1 match {
+    case singleItem : SingleItem => singleItem.name
+    case bundle: Bundle => bundle.name
+  }) > (item2 match {
+    case singleItem: SingleItem => singleItem.name
+    case bundle: Bundle => bundle.name
+  })
+  )
+
   def assertCartEqual(cart1: Cart, cart2: Cart) {
-    if (cart1.isEmpty && cart2.isEmpty) {
-      return
-    } else {
-      if (cart2.contains(cart1.head)){
-        assertCartEqual(cart1.tail, cart2.filterNot{item : Item => item == cart1.head})
-      } else {
-        fail
-      }
-    }
+    assert(sortCart(cart1) === sortCart(cart2))
 
   }
 }
