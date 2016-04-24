@@ -24,4 +24,5 @@ trait TestHelpers {
     val bundlePrice = price.getOrElse(items.map(item => item.price).sum - 0.01)
     List(Bundle(s"B_$getNext", bundlePrice, items))
   }
+
 }

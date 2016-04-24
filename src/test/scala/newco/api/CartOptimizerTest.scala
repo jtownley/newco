@@ -1,7 +1,9 @@
 package newco.api
+import newco.domain.Item
 import newco.domain.Types.Cart
 import newco.helpers.TestHelpers
 import org.scalatest.FreeSpec
+import org.scalatest.exceptions.TestFailedException
 
 class CartOptimizerTest extends FreeSpec with TestHelpers{
   "CartOptimizer" - {
@@ -16,8 +18,8 @@ class CartOptimizerTest extends FreeSpec with TestHelpers{
         }
       }
       "optimize" - {
-        "given" - {
-          "Cart containing one item not in a bundle" in {
+        "given cart containing" - {
+          "one item not in a bundle" in {
             val item = getSingleItems()
             val cartOptimizer = new CartOptimizer(List())
             val initialCart : Cart = item
@@ -25,9 +27,9 @@ class CartOptimizerTest extends FreeSpec with TestHelpers{
 
             val actualCart = cartOptimizer.optimize(initialCart)
 
-            assert(expectedCart === actualCart)
+            assertCartEqual(expectedCart, actualCart)
           }
-          "Cart containing one item also in a bundle" in {
+          "one item also in a bundle" in {
             val item = getSingleItems()
             val bundle = getBundle(item)
             val cartOptimizer = new CartOptimizer(bundle)
@@ -36,9 +38,9 @@ class CartOptimizerTest extends FreeSpec with TestHelpers{
 
             val actualCart = cartOptimizer.optimize(initialCart)
 
-            assert(expectedCart === actualCart)
+            assertCartEqual(expectedCart, actualCart)
           }
-          "Cart containing one item that is a bundle" in {
+          "one item that is a bundle" in {
             val item = getSingleItems()
             val bundle = getBundle(item)
             val cartOptimizer = new CartOptimizer(bundle)
@@ -47,9 +49,9 @@ class CartOptimizerTest extends FreeSpec with TestHelpers{
 
             val actualCart = cartOptimizer.optimize(initialCart)
 
-            assert(expectedCart === actualCart)
+            assertCartEqual(expectedCart, actualCart)
           }
-          "Cart containing one item that is part of many bundles" in {
+          "one item that is part of many bundles" in {
             val item = getSingleItems(price = 15.00)
             val bundleExpensive = getBundle(item, Some(12.99))
             val bundleCheap = getBundle(item, Some(11.99))
@@ -60,9 +62,9 @@ class CartOptimizerTest extends FreeSpec with TestHelpers{
 
             val actualCart = cartOptimizer.optimize(initialCart)
 
-            assert(expectedCart === actualCart)
+            assertCartEqual(expectedCart, actualCart)
           }
-          "Cart containing two identical items that are part of the same bundles" in {
+          "two identical items that are part of the same bundles" in {
             val item = getSingleItems(price = 15.00)
             val bundleExpensive = getBundle(item ++ item, Some(12.99))
             val bundleCheap = getBundle(item ++ item, Some(11.99))
@@ -73,9 +75,9 @@ class CartOptimizerTest extends FreeSpec with TestHelpers{
 
             val actualCart = cartOptimizer.optimize(initialCart)
 
-            assert(expectedCart === actualCart)
+            assertCartEqual(expectedCart, actualCart)
           }
-          "Cart containing one item that is part of a bundles and one that is not" in {
+          "one item that is part of a bundles and one that is not" in {
             val bundledItem = getSingleItems()
             val unBundledItem = getSingleItems()
             val bundles = getBundle(bundledItem)
@@ -86,9 +88,9 @@ class CartOptimizerTest extends FreeSpec with TestHelpers{
 
             val actualCart = cartOptimizer.optimize(initialCart)
 
-            assert(expectedCart === actualCart)
+            assertCartEqual(expectedCart, actualCart)
           }
-          "Cart containing 4 items that is part of a 2 bundles" in {
+          "4 items that is part of a 2 bundles" in {
             val items1 = getSingleItems(2)
             val items2 = getSingleItems(2)
             val bundle1 = getBundle(items1)
@@ -100,9 +102,9 @@ class CartOptimizerTest extends FreeSpec with TestHelpers{
 
             val actualCart = cartOptimizer.optimize(initialCart)
 
-            assert(expectedCart === actualCart)
+            assertCartEqual(expectedCart, actualCart)
           }
-          "Cart containing 3 items that could be part of a 2 bundles but saving is better then price for one bundle with higher price" in {
+          "3 items that could be part of a 2 bundles but saving is better then price for one bundle with higher price" in {
             val item1 = getSingleItems(price = 3.00)
             val item2 = getSingleItems(price = 4.00)
             val item3 = getSingleItems(price = 5.00)
@@ -115,11 +117,38 @@ class CartOptimizerTest extends FreeSpec with TestHelpers{
 
             val actualCart = cartOptimizer.optimize(initialCart)
 
-            assert(expectedCart.length == actualCart.length)
-            assert(expectedCart.toSet == actualCart.toSet)
+            assertCartEqual(expectedCart, actualCart)
           }
+//          "multiple items that could be part of a multiple bundles some of which are better deals if examined on there own" in {
+//            val item1 = getSingleItems(price = 5.00)
+//            val item2 = getSingleItems(price = 12.00)
+//            val item3 = getSingleItems(price = 10.00)
+//            val bundle1 = getBundle(item1 ++ item3, price = Some(13.50d))
+//            val bundle2 = getBundle(item2 ++ item3 ++ item3, price = Some(30.00d))
+//            val items = item1 ++ item1 ++ item2 ++ item3 ++ item3
+//            val cartOptimizer = new CartOptimizer(bundle1 ++ bundle2)
+//            val initialCart : Cart = items
+//            val expectedCart : Cart = item2 ++ bundle1 ++ bundle1
+//
+//            val actualCart = cartOptimizer.optimize(initialCart)
+//
+//            assertCartEqual(expectedCart, actualCart)
+//          }
         }
       }
     }
+  }
+
+  def assertCartEqual(cart1: Cart, cart2: Cart) {
+    if (cart1.isEmpty && cart2.isEmpty) {
+      return
+    } else {
+      if (cart2.contains(cart1.head)){
+        assertCartEqual(cart1.tail, cart2.filterNot{item : Item => item == cart1.head})
+      } else {
+        fail
+      }
+    }
+
   }
 }
