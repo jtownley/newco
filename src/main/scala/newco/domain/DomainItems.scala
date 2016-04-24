@@ -1,18 +1,14 @@
 package newco.domain
 
 object Types {
-  type Cart = List[_ <: Item]
+  type Cart = List[Item]
 }
 
-trait Item
-
-case class SingleItem(name: String, price: Double) extends Item
-
-case class Bundle(name: String, price: Double, items: List[SingleItem]) extends Item {
-  lazy val savings = {
-    if (items.isEmpty)
-      0.00d
-    else
-      items.map(_.price).sum - price
-  }
+trait Item{
+  def name: String
+  def price: Double
 }
+
+case class SingleItem(override val name: String, override val price: Double) extends Item
+
+case class Bundle(override val name: String, override val price: Double, items: List[SingleItem]) extends Item

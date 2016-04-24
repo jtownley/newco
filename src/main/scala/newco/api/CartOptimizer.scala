@@ -1,7 +1,7 @@
 package newco.api
 
 import newco.domain.Types.Cart
-import newco.domain.{Bundle, Item, SingleItem}
+import newco.domain.{Bundle, SingleItem}
 
 class CartOptimizer(bundles: List[Bundle]) {
   val itemBundles = bundles.toSet
@@ -27,16 +27,13 @@ class CartOptimizer(bundles: List[Bundle]) {
   private def unBundle(cart: Cart): List[SingleItem] = {
     cart.foldLeft(List[SingleItem]())((result, item) => {
       item match {
-        case i: SingleItem => result :+ i
-        case b: Bundle => result ++ b.items
+        case singleItem: SingleItem => result :+ singleItem
+        case bundle: Bundle => result ++ bundle.items
       }
     }
     )
   }
   private def cartPrice(cart: Cart): Double = {
-    cart.map((item: Item) => item match {
-      case singleItem: SingleItem => singleItem.price
-      case bundle: Bundle => bundle.price
-    }).sum
+    cart.map(_.price).sum
   }
 }

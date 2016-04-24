@@ -1,12 +1,8 @@
 package newco.api
-import com.sun.xml.internal.bind.v2.runtime.unmarshaller.XsiNilLoader.Single
-import newco.domain.{Bundle, Item, SingleItem}
 import newco.domain.Types.Cart
 import newco.helpers.TestHelpers
-import org.scalatest.FreeSpec
-import org.scalatest.exceptions.TestFailedException
 
-class CartOptimizerTest extends FreeSpec with TestHelpers{
+class CartOptimizerTest extends TestHelpers{
   "CartOptimizer" - {
     "should" - {
       "initialize" - {
@@ -138,19 +134,5 @@ class CartOptimizerTest extends FreeSpec with TestHelpers{
         }
       }
     }
-  }
-
-  def sortCart(cart: Cart): Cart = cart.sortWith((item1, item2) => (item1 match {
-    case singleItem : SingleItem => singleItem.name
-    case bundle: Bundle => bundle.name
-  }) > (item2 match {
-    case singleItem: SingleItem => singleItem.name
-    case bundle: Bundle => bundle.name
-  })
-  )
-
-  def assertCartEqual(cart1: Cart, cart2: Cart) {
-    assert(sortCart(cart1) === sortCart(cart2))
-
   }
 }
