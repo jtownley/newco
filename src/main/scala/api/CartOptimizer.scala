@@ -1,28 +1,32 @@
 package api
 import domain.Types.Cart
-import domain.{Bundle, Item, SingleItem}
+import domain.{Bundle, SingleItem}
 
-class CartOptimizer(singleItems:Set[SingleItem], bundles: Set[Bundle]){
-    val items = singleItems
-    val itemBundles = bundles
+class CartOptimizer(bundles: List[Bundle]){
+    val itemBundles = bundles.toSet
 
-    private def unBundle(cart: Cart) : Set[SingleItem] = {
-      cart.foldLeft(Set[SingleItem]())((result, item) => {
+    private def unBundle(cart: Cart) : List[SingleItem] = {
+      cart.foldLeft(List[SingleItem]())((result, item) => {
         item match {
-          case i: SingleItem => result + i
+          case i: SingleItem => result :+ i
           case b: Bundle => result ++ b.items
         }}
       )
     }
 
     def optimize(cart: Cart) : Cart = {
-        val unbundledCart = unBundle(cart)
-        val compatibleBundles = itemBundles.filter(itemBundle => itemBundle.items.subsetOf(unbundledCart))
+        val singleItems = unBundle(cart)
+        getBundle(singleItems)
+    }
 
-        if (compatibleBundles.isEmpty) {
-          cart
-        } else {
-          Set(compatibleBundles.min[Bundle](Ordering.by(bundles => bundles.price))).asInstanceOf[Cart]
-        }
+    def getBundle(singleItems: List[SingleItem]) : Cart = {
+      val compatibleBundles = itemBundles.filter(itemBundle => itemBundle.items.forall(singleItems.contains(_)))
+
+      if (compatibleBundles.isEmpty) {
+        singleItems
+      } else {
+        val bundle = compatibleBundles.min[Bundle](Ordering.by(bundles => bundles.price))
+        List(bundle) ++ getBundle(singleItems.diff(bundle.items))
+      }
     }
 }
