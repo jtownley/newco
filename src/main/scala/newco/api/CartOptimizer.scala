@@ -1,6 +1,6 @@
 package newco.api
 
-import newco.domain.Types.Cart
+import newco.domain.Types._
 import newco.domain.{Bundle, SingleItem}
 
 class CartOptimizer(bundles: List[Bundle]) {
@@ -20,7 +20,7 @@ class CartOptimizer(bundles: List[Bundle]) {
     } else {
       compatibleBundles.map(bundle => {
         List(bundle) ++ getBundle(singleItems.diff(bundle.items))
-      }).min[Cart](Ordering.by(cart => cartPrice(cart)))
+      }).min[Cart](Ordering.by(cart => cart.price))
     }
   }
 
@@ -32,8 +32,5 @@ class CartOptimizer(bundles: List[Bundle]) {
       }
     }
     )
-  }
-  private def cartPrice(cart: Cart): Double = {
-    cart.map(_.price).sum
   }
 }
